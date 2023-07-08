@@ -68,6 +68,10 @@
       defined(__QNX__)    || \
       defined(__GNU__)
 # include "uv/posix.h"
+#elif defined(__wasm__)
+#include "uv/wasm.h"
+#else
+#error "No OS!"
 #endif
 
 #ifndef NI_MAXHOST

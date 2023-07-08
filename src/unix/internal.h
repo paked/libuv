@@ -230,6 +230,7 @@ struct uv__statx {
  * Libuv uses uv__nonblock_fcntl() directly sometimes so ensure that it
  * commutes with uv__nonblock().
  */
+
 #if defined(__linux__) && O_NDELAY != O_NONBLOCK
 #undef uv__nonblock
 #define uv__nonblock uv__nonblock_fcntl

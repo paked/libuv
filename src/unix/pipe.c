@@ -29,6 +29,8 @@
 #include <unistd.h>
 #include <stdlib.h>
 
+#ifndef __wasm__
+// NOTE(harrison): no unix domain sockets on wasm
 
 int uv_pipe_init(uv_loop_t* loop, uv_pipe_t* handle, int ipc) {
   uv__stream_init(loop, (uv_stream_t*)handle, UV_NAMED_PIPE);
@@ -38,7 +40,6 @@ int uv_pipe_init(uv_loop_t* loop, uv_pipe_t* handle, int ipc) {
   handle->ipc = ipc;
   return 0;
 }
-
 
 int uv_pipe_bind(uv_pipe_t* handle, const char* name) {
   struct sockaddr_un saddr;
@@ -116,6 +117,7 @@ int uv__pipe_listen(uv_pipe_t* handle, int backlog, uv_connection_cb cb) {
   handle->io_watcher.cb = uv__server_io;
   uv__io_start(handle->loop, &handle->io_watcher, POLLIN);
   return 0;
+
 }
 
 
@@ -435,3 +437,5 @@ int uv__make_pipe(int fds[2], int flags) {
                  flags & UV_NONBLOCK_PIPE,
                  flags & UV_NONBLOCK_PIPE);
 }
+
+#endif // ! __wasm__

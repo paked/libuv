@@ -703,13 +703,15 @@ int uv__cloexec(int fd, int set) {
 }
 
 
+// NOTE(harrison): added __wasm__ here. not sure why there are two codepaths?
 ssize_t uv__recvmsg(int fd, struct msghdr* msg, int flags) {
 #if defined(__ANDROID__)   || \
     defined(__DragonFly__) || \
     defined(__FreeBSD__)   || \
     defined(__NetBSD__)    || \
     defined(__OpenBSD__)   || \
-    defined(__linux__)
+    defined(__linux__)     || \
+    defined(__wasm__)
   ssize_t rc;
   rc = recvmsg(fd, msg, flags | MSG_CMSG_CLOEXEC);
   if (rc == -1)
@@ -1526,18 +1528,21 @@ int uv_cpumask_size(void) {
 }
 
 int uv_os_getpriority(uv_pid_t pid, int* priority) {
-  int r;
+  // int r;
 
   if (priority == NULL)
     return UV_EINVAL;
 
+  /*
   errno = 0;
   r = getpriority(PRIO_PROCESS, (int) pid);
 
   if (r == -1 && errno != 0)
     return UV__ERR(errno);
 
-  *priority = r;
+  *priority = r;*/
+
+  *priority = 5;
   return 0;
 }
 
@@ -1545,9 +1550,11 @@ int uv_os_getpriority(uv_pid_t pid, int* priority) {
 int uv_os_setpriority(uv_pid_t pid, int priority) {
   if (priority < UV_PRIORITY_HIGHEST || priority > UV_PRIORITY_LOW)
     return UV_EINVAL;
+  /*
 
   if (setpriority(PRIO_PROCESS, (int) pid, priority) != 0)
     return UV__ERR(errno);
+  */
 
   return 0;
 }

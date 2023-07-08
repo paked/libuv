@@ -125,6 +125,9 @@ static int uv__tty_is_slave(const int fd) {
     abort();
 
   result = (pts == major(sb.st_rdev));
+#elif defined(__wasm__)
+  // NOTE(harrison): wasm had no concept of a tty?
+  return 0;
 #else
   /* Fallback to ptsname
    */
@@ -336,6 +339,8 @@ int uv_tty_set_mode(uv_tty_t* tty, uv_tty_mode_t mode) {
 
 
 int uv_tty_get_winsize(uv_tty_t* tty, int* width, int* height) {
+#ifndef __wasm__
+  // NOTE(harrison): winsize? wasm?
   struct winsize ws;
   int err;
 
@@ -349,6 +354,7 @@ int uv_tty_get_winsize(uv_tty_t* tty, int* width, int* height) {
   *width = ws.ws_col;
   *height = ws.ws_row;
 
+#endif
   return 0;
 }
 

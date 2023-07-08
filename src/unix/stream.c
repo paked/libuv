@@ -19,6 +19,9 @@
  * IN THE SOFTWARE.
  */
 
+#ifndef __wasm__
+// NOTE(harrison): no streams in wasm?
+
 #include "uv.h"
 #include "internal.h"
 
@@ -1560,3 +1563,5 @@ int uv_stream_set_blocking(uv_stream_t* handle, int blocking) {
    */
   return uv__nonblock(uv__stream_fd(handle), !blocking);
 }
+
+#endif

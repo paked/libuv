@@ -947,7 +947,9 @@ void uv_library_shutdown(void) {
   if (uv__exchange_int_relaxed(&was_shutdown, 1))
     return;
 
+#ifndef __wasm__
   uv__process_title_cleanup();
+#endif
   uv__signal_cleanup();
 #ifdef __MVS__
   /* TODO(itodorov) - zos: revisit when Woz compiler is available. */

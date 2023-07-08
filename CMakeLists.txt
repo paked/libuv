@@ -24,7 +24,7 @@ set(CMAKE_C_STANDARD 90)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-option(LIBUV_BUILD_SHARED "Build shared lib" ON)
+option(LIBUV_BUILD_SHARED "Build shared lib" OFF)
 
 cmake_dependent_option(LIBUV_BUILD_TESTS
   "Build the unit tests when BUILD_TESTING is enabled and we are the root project" ON
@@ -160,6 +160,10 @@ list(APPEND uv_cflags ${lint-utf8-msvc} )
 
 check_c_compiler_flag(-fno-strict-aliasing UV_F_STRICT_ALIASING)
 list(APPEND uv_cflags $<$<BOOL:${UV_F_STRICT_ALIASING}>:-fno-strict-aliasing>)
+
+# if(WASI)
+
+# endif()
 
 set(uv_sources
     src/fs-poll.c
@@ -419,6 +423,11 @@ if(CMAKE_SYSTEM_NAME STREQUAL "QNX")
     src/unix/no-proctitle.c
     src/unix/no-fsevents.c)
   list(APPEND uv_libraries socket)
+endif()
+
+if(CMAKE_SYSTEM_NAME STREQUAL "WASI")
+  list(APPEND uv_defines _WASI_EMULATED_PROCESS_CLOCKS)
+  list(APPEND uv_libraries wasi-emulated-process-clocks dl)
 endif()
 
 if(APPLE OR CMAKE_SYSTEM_NAME MATCHES "DragonFly|FreeBSD|Linux|NetBSD|OpenBSD")

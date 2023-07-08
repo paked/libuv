@@ -19,6 +19,9 @@
  * IN THE SOFTWARE.
  */
 
+// NOTE(harrison): exclude dlopen stuff in wasm
+#ifndef __wasm__
+
 #include "uv.h"
 #include "internal.h"
 
@@ -27,8 +30,8 @@
 #include <string.h>
 #include <locale.h>
 
-static int uv__dlerror(uv_lib_t* lib);
 
+static int uv__dlerror(uv_lib_t* lib);
 
 int uv_dlopen(const char* filename, uv_lib_t* lib) {
   dlerror(); /* Reset error status. */
@@ -78,3 +81,5 @@ static int uv__dlerror(uv_lib_t* lib) {
     return 0;
   }
 }
+
+#endif

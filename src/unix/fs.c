@@ -30,7 +30,11 @@
 #include "internal.h"
 
 #include <errno.h>
+
+// NOTE(harrison): exclude dlopen stuff in wasm
+#ifndef __wasm__
 #include <dlfcn.h>
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -89,6 +93,9 @@
       defined(__HAIKU__)  || \
       defined(__QNX__)
 # include <sys/statvfs.h>
+#elif defined(__wasm__)
+// NOTE(harrison): excluding statfs/statvfs stuff for wasm
+#pragma warn "excluding statfs/statvfs stuff"
 #else
 # include <sys/statfs.h>
 #endif
@@ -290,6 +297,8 @@ static int (*uv__mkostemp)(char*, int);
 
 
 static void uv__mkostemp_initonce(void) {
+// NOTE(harrison): exclude dlopen stuff in wasm
+#ifndef __wasm__
   /* z/os doesn't have RTLD_DEFAULT but that's okay
    * because it doesn't have mkostemp(O_CLOEXEC) either.
    */
@@ -302,6 +311,7 @@ static void uv__mkostemp_initonce(void) {
    */
   dlerror();
 #endif  /* RTLD_DEFAULT */
+#endif
 }
 
 
@@ -643,6 +653,8 @@ static int uv__fs_closedir(uv_fs_t* req) {
 }
 
 static int uv__fs_statfs(uv_fs_t* req) {
+  // NOTE(harrison): excluding statfs stuff in __wasm__
+  #ifndef __wasm__
   uv_statfs_t* stat_fs;
 #if defined(__sun)      || \
     defined(__MVS__)    || \
@@ -682,6 +694,8 @@ static int uv__fs_statfs(uv_fs_t* req) {
   stat_fs->f_files = buf.f_files;
   stat_fs->f_ffree = buf.f_ffree;
   req->ptr = stat_fs;
+
+  #endif
   return 0;
 }
 
@@ -929,6 +943,8 @@ static unsigned uv__kernel_version(void) {
  * fall back to a regular copy.
  */
 static int uv__is_buggy_cephfs(int fd) {
+// NOTE(harrison): excluding statfs stuff in __wasm__
+#ifndef __wasm__
   struct statfs s;
 
   if (-1 == fstatfs(fd, &s))
@@ -938,10 +954,16 @@ static int uv__is_buggy_cephfs(int fd) {
     return 0;
 
   return uv__kernel_version() < /* 4.20.0 */ 0x041400;
+#else
+  return 0;
+#endif
 }
 
 
 static int uv__is_cifs_or_smb(int fd) {
+// NOTE(harrison): excluding statfs stuff in __wasm__
+#ifndef __wasm__
+
   struct statfs s;
 
   if (-1 == fstatfs(fd, &s))
@@ -953,6 +975,7 @@ static int uv__is_cifs_or_smb(int fd) {
   case 0xFF534D42u:  /* CIFS */
     return 1;
   }
+#endif
 
   return 0;
 }
@@ -1685,12 +1708,18 @@ static void uv__fs_work(struct uv__work* w) {
     switch (req->fs_type) {
     X(ACCESS, access(req->path, req->flags));
     X(CHMOD, chmod(req->path, req->mode));
+#ifndef __wasm__
+    // NOTE(harrison): excluding statfs/statvfs stuff for wasm
     X(CHOWN, chown(req->path, req->uid, req->gid));
+#endif
     X(CLOSE, uv__fs_close(req->file));
     X(COPYFILE, uv__fs_copyfile(req));
     X(FCHMOD, fchmod(req->file, req->mode));
+#ifndef __wasm__
+    // NOTE(harrison): excluding statfs/statvfs stuff for wasm
     X(FCHOWN, fchown(req->file, req->uid, req->gid));
     X(LCHOWN, lchown(req->path, req->uid, req->gid));
+#endif
     X(FDATASYNC, uv__fs_fdatasync(req));
     X(FSTAT, uv__fs_fstat(req->file, &req->statbuf));
     X(FSYNC, uv__fs_fsync(req));
@@ -1714,7 +1743,10 @@ static void uv__fs_work(struct uv__work* w) {
     X(RMDIR, rmdir(req->path));
     X(SENDFILE, uv__fs_sendfile(req));
     X(STAT, uv__fs_stat(req->path, &req->statbuf));
+#ifndef __wasm__
+// NOTE(harrison): excluding statfs/statvfs stuff for wasm
     X(STATFS, uv__fs_statfs(req));
+#endif
     X(SYMLINK, symlink(req->path, req->new_path));
     X(UNLINK, unlink(req->path));
     X(UTIME, uv__fs_utime(req));

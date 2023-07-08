@@ -570,7 +570,9 @@ struct uv_write_s {
 UV_EXTERN int uv_is_readable(const uv_stream_t* handle);
 UV_EXTERN int uv_is_writable(const uv_stream_t* handle);
 
+#ifndef __wasm__
 UV_EXTERN int uv_stream_set_blocking(uv_stream_t* handle, int blocking);
+#endif // ! __wasm__
 
 UV_EXTERN int uv_is_closing(const uv_handle_t* handle);
 
@@ -814,6 +816,8 @@ struct uv_pipe_s {
   UV_PIPE_PRIVATE_FIELDS
 };
 
+#ifndef __wasm__
+// NOTE(harrison): no unix domain sockets on wasm
 UV_EXTERN int uv_pipe_init(uv_loop_t*, uv_pipe_t* handle, int ipc);
 UV_EXTERN int uv_pipe_open(uv_pipe_t*, uv_file file);
 UV_EXTERN int uv_pipe_bind(uv_pipe_t* handle, const char* name);
@@ -831,7 +835,7 @@ UV_EXTERN void uv_pipe_pending_instances(uv_pipe_t* handle, int count);
 UV_EXTERN int uv_pipe_pending_count(uv_pipe_t* handle);
 UV_EXTERN uv_handle_type uv_pipe_pending_type(uv_pipe_t* handle);
 UV_EXTERN int uv_pipe_chmod(uv_pipe_t* handle, int flags);
-
+#endif // ! __wasm__
 
 struct uv_poll_s {
   UV_HANDLE_FIELDS
@@ -1749,10 +1753,13 @@ UV_EXTERN void uv_sleep(unsigned int msec);
 
 UV_EXTERN void uv_disable_stdio_inheritance(void);
 
+// NOTE(harrison): exclude dlopen stuff in wasm
+#ifndef __wasm__
 UV_EXTERN int uv_dlopen(const char* filename, uv_lib_t* lib);
 UV_EXTERN void uv_dlclose(uv_lib_t* lib);
 UV_EXTERN int uv_dlsym(uv_lib_t* lib, const char* name, void** ptr);
 UV_EXTERN const char* uv_dlerror(const uv_lib_t* lib);
+#endif
 
 UV_EXTERN int uv_mutex_init(uv_mutex_t* handle);
 UV_EXTERN int uv_mutex_init_recursive(uv_mutex_t* handle);
